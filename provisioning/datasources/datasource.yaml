@@ -1,0 +1,17 @@
+apiVersion: 1
+
+datasources:
+  - name: YayemClickHouse
+    type: grafana-clickhouse-datasource
+    jsonData:
+      defaultDatabase: default
+      port: 443
+      server: ee04lompga.eu-west-1.aws.clickhouse.cloud
+      protocol: http
+      username: default
+      secure: true
+      tlsSkipVerify: false
+    secureJsonData:
+      # https://grafana.com/docs/grafana/latest/administration/provisioning/#using-environment-variables
+      password: $USER_CLICK_HOUSE_PASSWORD
+    editable: true

@@ -1,12 +1,22 @@
-# grafana
+# Grafana
 
-> Grafana Docker image for easy initialization of Grafana.
+> Grafana Docker Compose setup for local development
 
-Docker-Hub image: [stefanwalther/grafana](https://hub.docker.com/r/stefanwalther/grafana/)
+# Getting started
+1. Create a `secrets.env` file from [secrets.env.example](secrets.env.example);
+2. Set password for clickhouse;
+3. Run `docker compose up -d` in the project root;
 
-## Reference Links
+# Features
+- [ ] Local development;
+  - [x] Basic configuration for provisioning plugins, dashboard and datasources;
+  - [ ] Description of development workflow;
+- [ ] Git versioning;
+  - [ ] Setup for proper secrets management;
+- [ ] Infra
+  - [ ] IaC configuration for deployment;
+- [ ] CI/CD;
+  - [ ] Git and deployment integration;
 
-The following resources helped me to create this solution
-
-- [Rolling your own analytics dashboard with InfluxDB, Grafana and Docker](https://donagh.io/influxdb-grafana-dashboard/)
-
+# Questions to solve
+- What to do with plugins? Put them under version control or just configuration for them?

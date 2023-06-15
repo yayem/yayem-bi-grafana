@@ -1,0 +1,12 @@
+#
+# This file allows for plugins configuration but not for their provisioning
+# To install plugins the recommended approach is to use CLI
+#
+
+#apiVersion: 1
+#
+#apps:
+#  - type: grafana-clickhouse-datasource
+#    disabled: false
+#    jsonData:
+#      version: 3
