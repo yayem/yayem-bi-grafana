@@ -1,0 +1,584 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 3,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "PFEF3D75BD8706C16"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "displayName": "${__field.labels.__values}",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "A count(status) {status=\"active\"}"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "2Active"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 11,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PFEF3D75BD8706C16"
+          },
+          "format": 0,
+          "meta": {
+            "builderOptions": {
+              "fields": [],
+              "limit": 100,
+              "mode": "list"
+            }
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT toDate(synchronizationDate), COUNT(status), status \nFROM \"membersInTime\" \nWHERE IF('${status2}'='all', 1=1, if('${status2}'='total_members', status in ('active', 'paused', 'past_due'), status in ('guest', 'new', 'awaiting_review', 'approved'))) \nAND IF('${subscriptionProductId}'='all', 1=1, if('${subscriptionProductId}'='other', subscriptionProductId NOT IN ('prod_N8Lc8Q5gw9VXRs', 'prod_MyyEPECet88fTN'), subscriptionProductId='${subscriptionProductId}'))\nAND IF('${country}'='all', 1=1, countryOfResidence='${country}')\nGROUP BY toDate(synchronizationDate), status \nORDER BY toDate(synchronizationDate)",
+          "refId": "A",
+          "selectedFormat": 0
+        },
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PFEF3D75BD8706C16"
+          },
+          "hide": false,
+          "meta": {
+            "builderOptions": {
+              "fields": [],
+              "limit": 100,
+              "mode": "list"
+            }
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT\n    toDate(synchronizationDate) AS sync_date,\n    CASE\n        WHEN status IN ('guest', 'new', 'awaiting_review', 'approved') THEN 'potential'\n        WHEN status IN ('active', 'paused', 'past_due') THEN 'members'\n        ELSE status\n    END AS grouped_status,\n    COUNT(*) AS total_count\nFROM membersInTime\nWHERE IF('${status2}'='all', grouped_status IN ('potential', 'members'), if('${status2}'='total_members', grouped_status='members', grouped_status='potential'))\nAND IF('${subscriptionProductId}'='all', 1=1, if('${subscriptionProductId}'='other', subscriptionProductId NOT IN ('prod_N8Lc8Q5gw9VXRs', 'prod_MyyEPECet88fTN'), subscriptionProductId='${subscriptionProductId}'))\nAND IF('${country}'='all', 1=1, countryOfResidence='${country}')\nGROUP BY sync_date, grouped_status\nORDER BY sync_date, grouped_status;",
+          "refId": "B"
+        }
+      ],
+      "title": "Users In Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "PFEF3D75BD8706C16"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 9,
+        "x": 11,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "displayLabels": [],
+        "legend": {
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PFEF3D75BD8706C16"
+          },
+          "meta": {
+            "builderOptions": {
+              "fields": [],
+              "limit": 100,
+              "mode": "list"
+            }
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT COUNT(*), CASE\n        WHEN subscriptionProductId='prod_N8Lc8Q5gw9VXRs' THEN 'Global Membership'\n        WHEN subscriptionProductId='prod_MyyEPECet88fTN' THEN 'Premium House Membership'\n        ELSE 'Other'\n    END AS grouped_subscriptionName\nFROM membersInTime\nWHERE status in ('active', 'past_due', 'paused') AND isNotNull(subscriptionProductName) AND isNotNull(subscriptionProductId) AND toDate(synchronizationDate) = today()\nGROUP BY grouped_subscriptionName",
+          "refId": "A"
+        }
+      ],
+      "title": "Membership",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "PFEF3D75BD8706C16"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "noValue": "kk"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 11,
+        "x": 0,
+        "y": 8
+      },
+      "id": 2,
+      "options": {
+        "displayLabels": [],
+        "legend": {
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ],
+          "width": -2
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^count\\(\\)$/",
+          "values": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PFEF3D75BD8706C16"
+          },
+          "format": 1,
+          "meta": {
+            "builderOptions": {
+              "fields": [],
+              "limit": 100,
+              "mode": "list"
+            }
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT COUNT(*), status\nFROM membersInTime\nWHERE status in ('active', 'past_due', 'paused') and toDate(synchronizationDate) = today()\nGROUP BY status",
+          "refId": "A",
+          "selectedFormat": 1
+        }
+      ],
+      "title": "Total Members",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "PFEF3D75BD8706C16"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": [
+                  "count()"
+                ],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 9,
+        "x": 11,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "displayLabels": [],
+        "legend": {
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "PFEF3D75BD8706C16"
+          },
+          "meta": {
+            "builderOptions": {
+              "fields": [],
+              "limit": 100,
+              "mode": "list"
+            }
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT COUNT(*), status\nFROM membersInTime\nWHERE status in ('guest', 'new', 'awaiting_review', 'approved') and toDate(synchronizationDate) = today()\nGROUP BY status",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Potential",
+      "type": "piechart"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": "all",
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "hide": 0,
+        "includeAll": true,
+        "label": "Status",
+        "multi": false,
+        "name": "status2",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "Total Members",
+            "value": "total_members"
+          },
+          {
+            "selected": false,
+            "text": "Total Potential",
+            "value": "total_potential"
+          }
+        ],
+        "query": "Total Members : total_members, Total Potential : total_potential",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": [
+            "Active"
+          ],
+          "value": [
+            "active"
+          ]
+        },
+        "hide": 2,
+        "includeAll": true,
+        "label": "Status",
+        "multi": true,
+        "name": "status",
+        "options": [
+          {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": true,
+            "text": "Active",
+            "value": "active"
+          },
+          {
+            "selected": false,
+            "text": "Approved",
+            "value": "approved"
+          },
+          {
+            "selected": false,
+            "text": "Awaiting Review",
+            "value": "awaiting_review"
+          },
+          {
+            "selected": false,
+            "text": "New",
+            "value": "new"
+          },
+          {
+            "selected": false,
+            "text": "Past Due",
+            "value": "past_due"
+          },
+          {
+            "selected": false,
+            "text": "Paused",
+            "value": "paused"
+          },
+          {
+            "selected": false,
+            "text": "Inactive",
+            "value": "inactive"
+          },
+          {
+            "selected": false,
+            "text": "Guest",
+            "value": "guest"
+          }
+        ],
+        "query": "Active : active,Approved : approved,Awaiting Review : awaiting_review,New : new,Past Due : past_due,Paused : paused,Inactive : inactive,Guest : guest",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "allValue": "all",
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "hide": 0,
+        "includeAll": true,
+        "label": "Membership",
+        "multi": false,
+        "name": "subscriptionProductId",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "Global",
+            "value": "prod_N8Lc8Q5gw9VXRs"
+          },
+          {
+            "selected": false,
+            "text": "Premium",
+            "value": "prod_MyyEPECet88fTN"
+          },
+          {
+            "selected": false,
+            "text": "Other",
+            "value": "other"
+          }
+        ],
+        "query": "Global : prod_N8Lc8Q5gw9VXRs,Premium : prod_MyyEPECet88fTN, Other : other",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "allValue": "all",
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "PFEF3D75BD8706C16"
+        },
+        "definition": "SELECT DISTINCT countryOfResidence, c.name from membersInTime\nLEFT JOIN countries c ON c.code =  countryOfResidence",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Country",
+        "multi": false,
+        "name": "country",
+        "options": [],
+        "query": "SELECT DISTINCT countryOfResidence, c.name from membersInTime\nLEFT JOIN countries c ON c.code =  countryOfResidence",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "2023-06-14T22:00:00.000Z",
+    "to": "2023-06-15T22:00:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Users In Time",
+  "uid": "e7bf7b27-db17-48fb-9a84-1b1442401a13",
+  "version": 29,
+  "weekStart": ""
+}
