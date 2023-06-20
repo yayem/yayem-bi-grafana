@@ -78,20 +78,7 @@
             ]
           }
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "A count(status) {status=\"active\"}"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "2Active"
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -127,29 +114,13 @@
             }
           },
           "queryType": "sql",
-          "rawSql": "SELECT toDate(synchronizationDate), COUNT(status), status \nFROM \"membersInTime\" \nWHERE IF('${status2}'='all', 1=1, if('${status2}'='total_members', status in ('active', 'paused', 'past_due'), status in ('guest', 'new', 'awaiting_review', 'approved'))) \nAND IF('${subscriptionProductId}'='all', 1=1, if('${subscriptionProductId}'='other', subscriptionProductId NOT IN ('prod_N8Lc8Q5gw9VXRs', 'prod_MyyEPECet88fTN'), subscriptionProductId='${subscriptionProductId}'))\nAND IF('${country}'='all', 1=1, countryOfResidence='${country}')\nGROUP BY toDate(synchronizationDate), status \nORDER BY toDate(synchronizationDate)",
+          "rawSql": "SELECT toDate(synchronizationDate), COUNT(status), if('${status}'='all', status, CASE\n        WHEN status IN ('guest', 'new', 'awaiting_review', 'approved') THEN 'potential'\n        WHEN status IN ('active', 'paused', 'past_due') THEN 'members'\n        ELSE status\n    END AS groupedStatus)\nFROM \"membersInTime\"\nWHERE IF('${subscriptionProductId}'='all', 1=1, if('${subscriptionProductId}'='other', subscriptionProductId NOT IN ('prod_N8Lc8Q5gw9VXRs', 'prod_MyyEPECet88fTN'), subscriptionProductId='${subscriptionProductId}'))\nAND IF('${country}'='all', 1=1, countryOfResidence='${country}')\nAND IF('${city}'='all', 1=1, arrayExists( i -> (i = '${city}') , secondaryCities))\nGROUP BY toDate(synchronizationDate), if('${status}'='all', status, groupedStatus)\nORDER BY toDate(synchronizationDate)",
           "refId": "A",
           "selectedFormat": 0
-        },
-        {
-          "datasource": {
-            "type": "grafana-clickhouse-datasource",
-            "uid": "PFEF3D75BD8706C16"
-          },
-          "hide": false,
-          "meta": {
-            "builderOptions": {
-              "fields": [],
-              "limit": 100,
-              "mode": "list"
-            }
-          },
-          "queryType": "sql",
-          "rawSql": "SELECT\n    toDate(synchronizationDate) AS sync_date,\n    CASE\n        WHEN status IN ('guest', 'new', 'awaiting_review', 'approved') THEN 'potential'\n        WHEN status IN ('active', 'paused', 'past_due') THEN 'members'\n        ELSE status\n    END AS grouped_status,\n    COUNT(*) AS total_count\nFROM membersInTime\nWHERE IF('${status2}'='all', grouped_status IN ('potential', 'members'), if('${status2}'='total_members', grouped_status='members', grouped_status='potential'))\nAND IF('${subscriptionProductId}'='all', 1=1, if('${subscriptionProductId}'='other', subscriptionProductId NOT IN ('prod_N8Lc8Q5gw9VXRs', 'prod_MyyEPECet88fTN'), subscriptionProductId='${subscriptionProductId}'))\nAND IF('${country}'='all', 1=1, countryOfResidence='${country}')\nGROUP BY sync_date, grouped_status\nORDER BY sync_date, grouped_status;",
-          "refId": "B"
         }
       ],
       "title": "Users In Time",
+      "transformations": [],
       "type": "timeseries"
     },
     {
@@ -171,7 +142,32 @@
           },
           "mappings": []
         },
-        "overrides": []
+        "overrides": [
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": [
+                  "count()"
+                ],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": true
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -179,7 +175,7 @@
         "x": 11,
         "y": 0
       },
-      "id": 4,
+      "id": 3,
       "options": {
         "displayLabels": [],
         "legend": {
@@ -217,11 +213,11 @@
             }
           },
           "queryType": "sql",
-          "rawSql": "SELECT COUNT(*), CASE\n        WHEN subscriptionProductId='prod_N8Lc8Q5gw9VXRs' THEN 'Global Membership'\n        WHEN subscriptionProductId='prod_MyyEPECet88fTN' THEN 'Premium House Membership'\n        ELSE 'Other'\n    END AS grouped_subscriptionName\nFROM membersInTime\nWHERE status in ('active', 'past_due', 'paused') AND isNotNull(subscriptionProductName) AND isNotNull(subscriptionProductId) AND toDate(synchronizationDate) = today()\nGROUP BY grouped_subscriptionName",
+          "rawSql": "SELECT COUNT(*), status\nFROM membersInTime\nWHERE status in ('guest', 'new', 'awaiting_review', 'approved') and toDate(synchronizationDate) = today()\nGROUP BY status",
           "refId": "A"
         }
       ],
-      "title": "Membership",
+      "title": "Total Potential",
       "type": "piechart"
     },
     {
@@ -241,8 +237,7 @@
               "viz": false
             }
           },
-          "mappings": [],
-          "noValue": "kk"
+          "mappings": []
         },
         "overrides": []
       },
@@ -319,32 +314,7 @@
           },
           "mappings": []
         },
-        "overrides": [
-          {
-            "__systemRef": "hideSeriesFrom",
-            "matcher": {
-              "id": "byNames",
-              "options": {
-                "mode": "exclude",
-                "names": [
-                  "count()"
-                ],
-                "prefix": "All except:",
-                "readOnly": true
-              }
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": true
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -352,7 +322,7 @@
         "x": 11,
         "y": 8
       },
-      "id": 3,
+      "id": 4,
       "options": {
         "displayLabels": [],
         "legend": {
@@ -390,11 +360,11 @@
             }
           },
           "queryType": "sql",
-          "rawSql": "SELECT COUNT(*), status\nFROM membersInTime\nWHERE status in ('guest', 'new', 'awaiting_review', 'approved') and toDate(synchronizationDate) = today()\nGROUP BY status",
+          "rawSql": "SELECT COUNT(*), CASE\n        WHEN subscriptionProductId='prod_N8Lc8Q5gw9VXRs' THEN 'Global Membership'\n        WHEN subscriptionProductId='prod_MyyEPECet88fTN' THEN 'Premium House Membership'\n        ELSE 'Other'\n    END AS grouped_subscriptionName\nFROM membersInTime\nWHERE status in ('active', 'past_due', 'paused') AND isNotNull(subscriptionProductName) AND isNotNull(subscriptionProductId) AND toDate(synchronizationDate) = today()\nGROUP BY grouped_subscriptionName",
           "refId": "A"
         }
       ],
-      "title": "Total Potential",
+      "title": "Membership",
       "type": "piechart"
     }
   ],
@@ -405,102 +375,29 @@
   "templating": {
     "list": [
       {
-        "allValue": "all",
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "All",
-          "value": "$__all"
+          "value": "all"
         },
         "hide": 0,
-        "includeAll": true,
+        "includeAll": false,
         "label": "Status",
         "multi": false,
-        "name": "status2",
-        "options": [
-          {
-            "selected": true,
-            "text": "All",
-            "value": "$__all"
-          },
-          {
-            "selected": false,
-            "text": "Total Members",
-            "value": "total_members"
-          },
-          {
-            "selected": false,
-            "text": "Total Potential",
-            "value": "total_potential"
-          }
-        ],
-        "query": "Total Members : total_members, Total Potential : total_potential",
-        "queryValue": "",
-        "skipUrlSync": false,
-        "type": "custom"
-      },
-      {
-        "current": {
-          "selected": false,
-          "text": [
-            "Active"
-          ],
-          "value": [
-            "active"
-          ]
-        },
-        "hide": 2,
-        "includeAll": true,
-        "label": "Status",
-        "multi": true,
         "name": "status",
         "options": [
           {
-            "selected": false,
-            "text": "All",
-            "value": "$__all"
-          },
-          {
             "selected": true,
-            "text": "Active",
-            "value": "active"
+            "text": "All",
+            "value": "all"
           },
           {
             "selected": false,
-            "text": "Approved",
-            "value": "approved"
-          },
-          {
-            "selected": false,
-            "text": "Awaiting Review",
-            "value": "awaiting_review"
-          },
-          {
-            "selected": false,
-            "text": "New",
-            "value": "new"
-          },
-          {
-            "selected": false,
-            "text": "Past Due",
-            "value": "past_due"
-          },
-          {
-            "selected": false,
-            "text": "Paused",
-            "value": "paused"
-          },
-          {
-            "selected": false,
-            "text": "Inactive",
-            "value": "inactive"
-          },
-          {
-            "selected": false,
-            "text": "Guest",
-            "value": "guest"
+            "text": "Summary",
+            "value": "summary"
           }
         ],
-        "query": "Active : active,Approved : approved,Awaiting Review : awaiting_review,New : new,Past Due : past_due,Paused : paused,Inactive : inactive,Guest : guest",
+        "query": "All : all, Summary : summary",
         "queryValue": "",
         "skipUrlSync": false,
         "type": "custom"
@@ -568,6 +465,31 @@
         "skipUrlSync": false,
         "sort": 1,
         "type": "query"
+      },
+      {
+        "allValue": "all",
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "PFEF3D75BD8706C16"
+        },
+        "definition": "SELECT name from cities",
+        "hide": 0,
+        "includeAll": true,
+        "label": "City",
+        "multi": false,
+        "name": "city",
+        "options": [],
+        "query": "SELECT name from cities",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
       }
     ]
   },
@@ -579,6 +501,6 @@
   "timezone": "",
   "title": "Users In Time",
   "uid": "e7bf7b27-db17-48fb-9a84-1b1442401a13",
-  "version": 29,
+  "version": 33,
   "weekStart": ""
 }
