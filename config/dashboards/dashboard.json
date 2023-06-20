@@ -368,7 +368,7 @@
       "type": "piechart"
     }
   ],
-  "refresh": "",
+  "refresh": false,
   "schemaVersion": 38,
   "style": "dark",
   "tags": [],
@@ -495,12 +495,12 @@
   },
   "time": {
     "from": "2023-06-14T22:00:00.000Z",
-    "to": "2023-06-15T22:00:00.000Z"
+    "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Users In Time",
   "uid": "e7bf7b27-db17-48fb-9a84-1b1442401a13",
-  "version": 33,
+  "version": 34,
   "weekStart": ""
 }
